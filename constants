@@ -1,0 +1,5 @@
+# lmshell constants
+# This file is used during build to inject values into the final executable
+
+VERSION=1.0.0
+DEFAULT_BASE_URL=https://api.openai.com/v1
