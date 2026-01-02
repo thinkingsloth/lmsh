@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-# lmshell installer
-# Usage: curl -sSf https://raw.githubusercontent.com/USER/REPO/main/install.sh | sh
+# lmsh installer
+# Usage: curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/install.sh | sh
 
-GITHUB_RAW_URL="https://raw.githubusercontent.com/USER/REPO/main/lmshell"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/thinkingsloth/lmsh/main/lmsh"
 INSTALL_DIR=""
-BINARY_NAME="lmshell"
+BINARY_NAME="lmsh"
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,7 +37,7 @@ check_uv() {
     if ! command -v uv >/dev/null 2>&1; then
         print_error "uv is not installed"
         echo ""
-        echo "lmshell requires uv to run. To install uv, run:"
+        echo "lmsh requires uv to run. To install uv, run:"
         echo ""
         printf "  ${GREEN}curl -LsSf https://astral.sh/uv/install.sh | sh${NC}\n"
         echo ""
@@ -79,8 +79,8 @@ check_download_tool() {
 }
 
 # Download the script
-download_lmshell() {
-    print_info "Downloading lmshell from GitHub..."
+download_lmsh() {
+    print_info "Downloading lmsh from GitHub..."
 
     TEMP_FILE=$(mktemp)
 
@@ -88,7 +88,7 @@ download_lmshell() {
         if curl -fsSL "$GITHUB_RAW_URL" -o "$TEMP_FILE"; then
             print_success "Downloaded successfully"
         else
-            print_error "Failed to download lmshell"
+            print_error "Failed to download lmsh"
             rm -f "$TEMP_FILE"
             exit 1
         fi
@@ -96,7 +96,7 @@ download_lmshell() {
         if wget -q "$GITHUB_RAW_URL" -O "$TEMP_FILE"; then
             print_success "Downloaded successfully"
         else
-            print_error "Failed to download lmshell"
+            print_error "Failed to download lmsh"
             rm -f "$TEMP_FILE"
             exit 1
         fi
@@ -106,11 +106,11 @@ download_lmshell() {
 }
 
 # Install the script
-install_lmshell() {
+install_lmsh() {
     TEMP_FILE=$1
     INSTALL_PATH="$INSTALL_DIR/$BINARY_NAME"
 
-    print_info "Installing lmshell..."
+    print_info "Installing lmsh..."
 
     # Copy to install directory
     if cp "$TEMP_FILE" "$INSTALL_PATH"; then
@@ -118,7 +118,7 @@ install_lmshell() {
         rm -f "$TEMP_FILE"
         print_success "Installed to $INSTALL_PATH"
     else
-        print_error "Failed to install lmshell"
+        print_error "Failed to install lmsh"
         print_warning "You may need to run with sudo or install to a different directory"
         rm -f "$TEMP_FILE"
         exit 1
@@ -153,42 +153,42 @@ check_path() {
 print_config_instructions() {
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    print_success "lmshell installed successfully!"
+    print_success "lmsh installed successfully!"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     echo "Next steps:"
     echo ""
     echo "1. Configure environment variables:"
     echo ""
-    printf "   ${GREEN}export LMSHELL_API_TOKEN=\"your-api-token\"${NC}\n"
-    printf "   ${GREEN}export LMSHELL_MODEL_ID=\"your-model-id\"${NC}\n"
+    printf "   ${GREEN}export LMSH_API_TOKEN=\"your-api-token\"${NC}\n"
+    printf "   ${GREEN}export LMSH_MODEL_ID=\"your-model-id\"${NC}\n"
     echo ""
     echo "   Optional:"
-    printf "   ${GREEN}export LMSHELL_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n"
-    printf "   ${GREEN}export LMSHELL_OUTPUT=\"auto\"${NC}                        # Default: current shell\n"
-    printf "   ${GREEN}export LMSHELL_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n"
+    printf "   ${GREEN}export LMSH_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n"
+    printf "   ${GREEN}export LMSH_OUTPUT=\"auto\"${NC}                        # Default: current shell\n"
+    printf "   ${GREEN}export LMSH_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n"
     echo ""
     echo "2. Try it out:"
     echo ""
-    printf "   ${GREEN}lmshell find all python files modified today${NC}\n"
-    printf "   ${GREEN}lmshell --output=python read json file and print keys${NC}\n"
-    printf "   ${GREEN}lmshell --help${NC}\n"
+    printf "   ${GREEN}lmsh find all python files modified today${NC}\n"
+    printf "   ${GREEN}lmsh --output=python read json file and print keys${NC}\n"
+    printf "   ${GREEN}lmsh --help${NC}\n"
     echo ""
     echo "3. For convenience, add helper functions to ~/.bashrc:"
     echo ""
     printf "   ${GREEN}# Execute immediately${NC}\n"
-    printf "   ${GREEN}lm() { eval \"\$(lmshell \"\$@\")\"; }${NC}\n"
+    printf "   ${GREEN}lm() { eval \"\$(lmsh \"\$@\")\"; }${NC}\n"
     echo ""
     printf "   ${GREEN}# Preview then execute${NC}\n"
     printf "   ${GREEN}lmp() {${NC}\n"
-    printf "   ${GREEN}    local cmd; cmd=\$(lmshell \"\$@\")${NC}\n"
+    printf "   ${GREEN}    local cmd; cmd=\$(lmsh \"\$@\")${NC}\n"
     printf "   ${GREEN}    echo \"Command: \$cmd\"${NC}\n"
     printf "   ${GREEN}    read -p \"Execute? [y/N] \" -n 1 -r; echo${NC}\n"
     printf "   ${GREEN}    [[ \$REPLY =~ ^[Yy]\$ ]] && eval \"\$cmd\"${NC}\n"
     printf "   ${GREEN}}${NC}\n"
     echo ""
     echo "For more information, visit:"
-    echo "  https://github.com/USER/REPO"
+    echo "  https://github.com/thinkingsloth/lmsh"
     echo ""
 }
 
@@ -196,7 +196,7 @@ print_config_instructions() {
 main() {
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  lmshell installer"
+    echo "  lmsh installer"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
 
@@ -209,10 +209,10 @@ main() {
     determine_install_dir
 
     # Download the script
-    TEMP_FILE=$(download_lmshell)
+    TEMP_FILE=$(download_lmsh)
 
     # Install it
-    install_lmshell "$TEMP_FILE"
+    install_lmsh "$TEMP_FILE"
 
     # Check PATH
     check_path

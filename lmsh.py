@@ -1,0 +1,587 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+
+"""
+lmsh - LLM-powered shell command generator
+
+This script takes natural language queries and converts them to shell commands
+using an OpenAI-compatible API.
+"""
+
+import os
+import sys
+import json
+import subprocess
+import urllib.request
+import urllib.error
+from pathlib import Path
+
+# ============================================================================
+# Configuration & Constants
+# ============================================================================
+
+VERSION = "__VERSION__"  # Replaced during build
+DEFAULT_BASE_URL = "__DEFAULT_BASE_URL__"  # Replaced during build
+
+# ============================================================================
+# Safety Warning
+# ============================================================================
+
+def show_first_run_warning():
+    """
+    Show a safety warning on first run.
+    Creates a flag file to track if warning has been shown.
+    """
+    # Try to use XDG_CONFIG_HOME, fallback to ~/.config
+    config_dir = Path(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config')))
+    flag_file = config_dir / 'lmsh' / '.warning_shown'
+
+    # If flag file exists, warning was already shown
+    if flag_file.exists():
+        return
+
+    # Show warning
+    warning = """
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  WARNING: LLM-GENERATED COMMANDS - USE AT YOUR OWN RISK  ⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This tool generates commands using Large Language Models (LLMs).
+
+IMPORTANT:
+• LLMs can make mistakes and generate incorrect or dangerous commands
+• Generated commands may have unpredictable behavior
+• Commands could potentially damage your system or data
+• ALWAYS review commands before executing them
+• Use --help to see all options and examples
+
+YOU USE THIS TOOL ENTIRELY AT YOUR OWN RISK.
+
+By continuing to use lmsh, you acknowledge and accept these risks.
+
+This warning will only be shown once.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+    print(warning, file=sys.stderr)
+
+    # Create flag file to mark warning as shown
+    try:
+        flag_file.parent.mkdir(parents=True, exist_ok=True)
+        flag_file.touch()
+    except:
+        # If we can't create the flag file, that's okay
+        # Warning will show again next time
+        pass
+
+# ============================================================================
+# Shell Detection & Environment
+# ============================================================================
+
+def get_version(command):
+    """
+    Get version of a command if available.
+
+    Args:
+        command: Command name to check version for
+
+    Returns:
+        str: Version string or None if not available
+    """
+    try:
+        # Try --version first
+        result = subprocess.run(
+            [command, '--version'],
+            capture_output=True,
+            text=True,
+            timeout=2
+        )
+        if result.returncode == 0:
+            # Get first line of output
+            version = result.stdout.split('\n')[0]
+            return version
+    except:
+        pass
+
+    try:
+        # Try -version for some tools
+        result = subprocess.run(
+            [command, '-version'],
+            capture_output=True,
+            text=True,
+            timeout=2
+        )
+        if result.returncode == 0:
+            version = result.stdout.split('\n')[0]
+            return version
+    except:
+        pass
+
+    return None
+
+def detect_available_shells():
+    """
+    Detect available shells and interpreters with their versions.
+
+    Returns:
+        dict: Dictionary mapping shell names to version strings
+    """
+    shells_to_check = [
+        'bash', 'zsh', 'sh', 'fish', 'ksh',
+        'python3', 'python', 'node', 'ruby', 'perl'
+    ]
+
+    available = {}
+    for shell in shells_to_check:
+        # Check if command exists
+        try:
+            result = subprocess.run(
+                ['which', shell],
+                capture_output=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                version = get_version(shell)
+                available[shell] = version or 'available'
+        except:
+            pass
+
+    return available
+
+def get_current_shell():
+    """
+    Detect the current shell environment.
+
+    Returns:
+        str: Name of the current shell (bash, zsh, etc.)
+    """
+    # Check SHELL environment variable
+    shell_path = os.getenv('SHELL', '')
+    if shell_path:
+        shell_name = Path(shell_path).name
+        return shell_name
+
+    # Fallback to bash
+    return 'bash'
+
+def build_system_prompt(output_type, current_shell, available_shells, allow_sudo):
+    """
+    Build the system prompt with shell context.
+
+    Args:
+        output_type: Desired output type (bash, python, auto, etc.)
+        current_shell: Current shell being used
+        available_shells: Dictionary of available shells and versions
+        allow_sudo: Whether to allow sudo commands
+
+    Returns:
+        str: System prompt for the LLM
+    """
+    # Format available shells for prompt
+    shells_list = []
+    for shell, version in available_shells.items():
+        shells_list.append(f"  - {shell}: {version}")
+    shells_info = "\n".join(shells_list) if shells_list else "  - bash: available"
+
+    # Determine output instruction based on output_type
+    output_instruction = f"MUST generate output in {output_type} format ONLY."
+    format_emphasis = f"REQUIRED OUTPUT FORMAT: {output_type}"
+
+    # Sudo permissions
+    sudo_rule = "- You MAY use sudo when necessary for privileged operations" if allow_sudo else "- NEVER use sudo or generate commands requiring root privileges"
+
+    prompt = f"""You are a command/script generator. Your ONLY job is to convert natural language queries into executable code.
+
+CRITICAL REQUIREMENTS:
+{format_emphasis}
+
+⚠️ CRITICAL: Your output will be DIRECTLY PIPED to {output_type} interpreter
+   - Any extra text will cause SYNTAX ERRORS and EXECUTION FAILURE
+   - The user will execute: your_output | {output_type}
+   - Output must be 100% valid {output_type} syntax with ZERO additional text
+
+ENVIRONMENT:
+- Current shell: {current_shell}
+- Target format: {output_type}
+- Sudo allowed: {allow_sudo}
+- Available interpreters: {len(available_shells)} detected
+
+STRICT OUTPUT RULES - FOLLOW EXACTLY:
+1. Output ONLY the raw command/script - NO other text whatsoever
+2. NO explanations before or after the command
+3. NO markdown formatting (no ```, no code blocks, no language tags)
+4. NO quotes around the entire output
+5. NO comments unless they are part of valid {output_type} syntax
+6. NO "Here's the command:" or similar phrases
+7. {output_instruction}
+8. First character of output must be valid {output_type} code
+9. Last character of output must be valid {output_type} code
+
+COMMAND GUIDELINES:
+- Generate syntactically correct code for {output_type}
+- Use standard utilities and best practices
+- Support pipes, redirects, loops, and conditionals when needed
+- If query is unclear, make reasonable assumptions
+{sudo_rule}
+
+EXAMPLES - Study these patterns carefully. Notice: ONLY the command, nothing else:
+"""
+
+    # Add format-specific examples first based on output_type
+    if output_type in ['python', 'python3']:
+        prompt += """
+Query: "say hello"
+Output: print("hello")
+
+Query: "read a json file and print all keys"
+Output: import json; data = json.load(open('file.json')); print(list(data.keys()))
+
+Query: "list all files in current directory"
+Output: import os; print('\\n'.join(os.listdir('.')))
+
+Query: "fetch data from an API"
+Output: import urllib.request; print(urllib.request.urlopen('https://api.example.com/data').read().decode())
+"""
+    elif output_type == 'node':
+        prompt += """
+Query: "say hello"
+Output: console.log("hello")
+
+Query: "read and parse json file"
+Output: console.log(JSON.parse(require('fs').readFileSync('file.json', 'utf8')))
+
+Query: "list files in current directory"
+Output: console.log(require('fs').readdirSync('.').join('\\n'))
+"""
+    elif output_type == 'ruby':
+        prompt += """
+Query: "say hello"
+Output: puts "hello"
+
+Query: "read and parse json file"
+Output: require 'json'; puts JSON.parse(File.read('file.json'))
+
+Query: "list files in current directory"
+Output: puts Dir.entries('.')
+"""
+    elif output_type == 'perl':
+        prompt += """
+Query: "say hello"
+Output: print "hello\\n"
+
+Query: "read file contents"
+Output: open(FH, '<', 'file.txt') or die $!; print while <FH>; close(FH)
+
+Query: "list files in current directory"
+Output: opendir(DIR, '.'); print "$_\\n" for readdir(DIR); closedir(DIR)
+"""
+    else:  # bash, sh, zsh, fish, ksh
+        prompt += """
+Query: "say hello"
+Output: echo "hello"
+
+Query: "find all python files modified today"
+Output: find . -name "*.py" -mtime 0
+
+Query: "count lines in all txt files"
+Output: find . -name "*.txt" -exec wc -l {{}} + | awk '{{sum+=$1}} END {{print sum}}'
+
+Query: "loop through numbers 1 to 10 and print them"
+Output: for i in {{1..10}}; do echo $i; done
+"""
+
+    return prompt
+
+# ============================================================================
+# Help & Documentation
+# ============================================================================
+
+def show_version():
+    """Display version and exit."""
+    # Get configuration from environment variables
+    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
+    model_id = os.getenv('LMSH_MODEL_ID', 'not set')
+
+    print(f"lmsh version {VERSION}")
+    print(f"Base URL: {base_url}")
+    print(f"Model ID: {model_id}")
+    sys.exit(0)
+
+def show_help():
+    """Display help message and exit."""
+    help_text = """lmsh - LLM-powered command/script generator
+
+USAGE:
+    lmsh [OPTIONS] <query...>
+
+OPTIONS:
+    --base-url=<url>      OpenAI API base URL
+                          (default: $LMSH_BASE_URL or http://127.0.0.1:7980/v1)
+    --api-token=<token>   API authentication token (default: $LMSH_API_TOKEN)
+    --model-id=<model>    Model ID to use (default: $LMSH_MODEL_ID)
+    --output=<format>     Output format: bash, sh, zsh, python, python3, node, ruby, perl
+                          (default: $LMSH_OUTPUT or current shell)
+    --allow-sudo          Allow generation of commands requiring sudo/root privileges
+                          (default: $LMSH_ALLOW_SUDO or false)
+    --version             Show version information
+    --help                Show this help message
+
+ENVIRONMENT VARIABLES:
+    LMSH_BASE_URL      Base URL for OpenAI-compatible API
+    LMSH_API_TOKEN     API authentication token
+    LMSH_MODEL_ID      Model ID to use for generation
+    LMSH_OUTPUT        Default output format (bash, python, node, etc.)
+    LMSH_ALLOW_SUDO    Allow sudo commands (true/false, default: false)
+
+EXAMPLES:
+    # Basic shell commands (uses current shell by default)
+    lmsh find all python files modified today
+    lmsh count lines in all txt files
+
+    # Force Python output
+    lmsh --output=python read json file and print all keys
+
+    # Use different output formats
+    lmsh --output=zsh create an associative array
+    lmsh --output=node read package.json and print dependencies
+
+OUTPUT FORMATS:
+    bash, sh, zsh, fish, ksh  - Shell scripts/commands
+    python, python3           - Python code
+    node, ruby, perl          - Other scripting languages
+
+The query should describe what you want to do in natural language.
+lmsh will generate the appropriate command or script.
+"""
+    print(help_text)
+    sys.exit(0)
+
+# ============================================================================
+# Argument Parsing
+# ============================================================================
+
+def parse_args():
+    """
+    Parse command line arguments and environment variables.
+
+    Returns:
+        dict: Configuration dictionary with keys:
+            - base_url: API endpoint URL
+            - api_token: Authentication token
+            - model_id: Model identifier
+            - output_type: Output format (bash, python, auto, etc.)
+            - allow_sudo: Whether to allow sudo commands
+            - query: User's natural language query
+    """
+    args = sys.argv[1:]
+
+    # Show version if --version flag
+    if '--version' in args:
+        show_version()
+
+    # Show help if no arguments or --help flag
+    if not args or '--help' in args:
+        show_help()
+
+    # Get current shell for default
+    current_shell = get_current_shell()
+
+    # Get configuration from environment variables with defaults
+    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
+    api_token = os.getenv('LMSH_API_TOKEN')
+    model_id = os.getenv('LMSH_MODEL_ID')
+    output_type = os.getenv('LMSH_OUTPUT', current_shell)
+    allow_sudo_env = os.getenv('LMSH_ALLOW_SUDO', 'false').lower()
+    allow_sudo = allow_sudo_env in ['true', '1', 'yes']
+
+    # Parse command line arguments
+    query_parts = []
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        # Handle --option=value style arguments or --flag style
+        if arg.startswith('--'):
+            if arg == '--allow-sudo':
+                allow_sudo = True
+            elif '=' in arg:
+                key, value = arg.split('=', 1)
+
+                # Override configuration based on option
+                if key == '--base-url':
+                    base_url = value
+                elif key == '--api-token':
+                    api_token = value
+                elif key == '--model-id':
+                    model_id = value
+                elif key == '--output':
+                    output_type = value
+                else:
+                    print(f"Unknown option: {key}", file=sys.stderr)
+                    sys.exit(1)
+            else:
+                print(f"Invalid option format: {arg}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            # Everything else is part of the query
+            query_parts.append(arg)
+
+        i += 1
+
+    # Validate required inputs
+    if not query_parts:
+        print("Error: No query provided", file=sys.stderr)
+        show_help()
+
+    if not api_token:
+        print("Error: LMSH_API_TOKEN not set", file=sys.stderr)
+        sys.exit(1)
+
+    if not model_id:
+        print("Error: LMSH_MODEL_ID not set", file=sys.stderr)
+        sys.exit(1)
+
+    # Validate output format
+    supported_formats = [
+        'bash', 'sh', 'zsh', 'fish', 'ksh',
+        'python', 'python3',
+        'node', 'ruby', 'perl'
+    ]
+
+    if output_type not in supported_formats:
+        print(f"Error: Unsupported output format '{output_type}'", file=sys.stderr)
+        print(f"Supported formats: {', '.join(supported_formats)}", file=sys.stderr)
+        sys.exit(1)
+
+    # Join all query parts into a single string
+    query = ' '.join(query_parts)
+
+    return {
+        'base_url': base_url,
+        'api_token': api_token,
+        'model_id': model_id,
+        'output_type': output_type,
+        'current_shell': current_shell,
+        'allow_sudo': allow_sudo,
+        'query': query
+    }
+
+# ============================================================================
+# LLM API Communication
+# ============================================================================
+
+def call_llm(base_url, api_token, model_id, query, output_type, current_shell, available_shells, allow_sudo):
+    """
+    Call the LLM API to generate a command from a natural language query.
+
+    Args:
+        base_url: Base URL of the OpenAI-compatible API
+        api_token: Authentication token for the API
+        model_id: Model identifier to use
+        query: Natural language query describing the desired command
+        output_type: Desired output format (bash, python, auto, etc.)
+        current_shell: Current shell environment
+        available_shells: Dictionary of available shells/interpreters
+        allow_sudo: Whether to allow sudo commands
+
+    Returns:
+        str: Generated command or script
+
+    Exits with error code 1 if the API call fails.
+    """
+    # Construct the full API endpoint URL
+    url = f"{base_url.rstrip('/')}/chat/completions"
+
+    # Build system prompt with shell context
+    system_prompt = build_system_prompt(output_type, current_shell, available_shells, allow_sudo)
+
+    # Prepare the request payload following OpenAI's chat completion format
+    payload = {
+        "model": model_id,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query}
+        ],
+        "temperature": 0.1,  # Low temperature for more deterministic output
+        "max_tokens": 1000   # Increased for potentially longer scripts
+    }
+
+    # Set up HTTP headers
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_token}"
+    }
+
+    try:
+        # Create and send the HTTP POST request
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers=headers,
+            method='POST'
+        )
+
+        # Read and parse the response
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            command = result['choices'][0]['message']['content'].strip()
+            return command
+
+    except urllib.error.HTTPError as e:
+        # Handle HTTP errors (4xx, 5xx status codes)
+        error_body = e.read().decode('utf-8')
+        print(f"API Error ({e.code}): {error_body}", file=sys.stderr)
+        sys.exit(1)
+
+    except urllib.error.URLError as e:
+        # Handle connection errors (network issues, invalid URL, etc.)
+        print(f"Connection Error: {e.reason}", file=sys.stderr)
+        sys.exit(1)
+
+    except (KeyError, json.JSONDecodeError) as e:
+        # Handle malformed API responses
+        print(f"Error parsing API response: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except Exception as e:
+        # Catch-all for unexpected errors
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+# ============================================================================
+# Main Entry Point
+# ============================================================================
+
+def main():
+    """
+    Main execution function.
+
+    Parses arguments, calls the LLM API, and outputs the generated command.
+    """
+    # Show first-run warning
+    show_first_run_warning()
+
+    # Parse command line arguments and environment variables
+    config = parse_args()
+
+    # Detect available shells and interpreters
+    available_shells = detect_available_shells()
+
+    # Call the LLM to generate the command
+    command = call_llm(
+        config['base_url'],
+        config['api_token'],
+        config['model_id'],
+        config['query'],
+        config['output_type'],
+        config['current_shell'],
+        available_shells,
+        config['allow_sudo']
+    )
+
+    # Output the generated command to stdout
+    print(command)
+
+if __name__ == '__main__':
+    main()

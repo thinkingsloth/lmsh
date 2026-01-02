@@ -1,6 +1,6 @@
-# Contributing to lmshell
+# Contributing to lmsh
 
-Thank you for your interest in contributing to lmshell! We welcome contributions from the community.
+Thank you for your interest in contributing to lmsh! We welcome contributions from the community.
 
 ## How to Contribute
 
@@ -37,13 +37,13 @@ Feature suggestions are welcome! Please open an issue describing:
 4. **Test thoroughly**
    ```bash
    # Test basic functionality
-   ./lmshell --output=bash say hello
-   ./lmshell --output=python say hello
-   ./lmshell --output=auto find all files
+   ./lmsh --output=bash say hello
+   ./lmsh --output=python say hello
+   ./lmsh --output=auto find all files
 
    # Test error cases
-   ./lmshell --output=invalid say hello
-   ./lmshell  # Should show help
+   ./lmsh --output=invalid say hello
+   ./lmsh  # Should show help
    ```
 
 5. **Commit your changes**
@@ -76,15 +76,15 @@ git clone https://github.com/your-username/llm-command.git
 cd llm-command
 
 # Make the script executable
-chmod +x lmshell
+chmod +x lmsh
 
 # Set up environment variables for testing
-export LMSHELL_API_TOKEN="your-test-token"
-export LMSHELL_MODEL_ID="your-test-model"
-export LMSHELL_BASE_URL="http://127.0.0.1:7980/v1"
+export LMSH_API_TOKEN="your-test-token"
+export LMSH_MODEL_ID="your-test-model"
+export LMSH_BASE_URL="http://127.0.0.1:7980/v1"
 
 # Test the script
-./lmshell --help
+./lmsh --help
 ```
 
 ## Areas for Contribution
@@ -104,4 +104,4 @@ Feel free to open an issue for any questions about contributing.
 
 ## License
 
-By contributing to lmshell, you agree that your contributions will be licensed under the Apache License 2.0.
+By contributing to lmsh, you agree that your contributions will be licensed under the Apache License 2.0.

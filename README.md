@@ -1,4 +1,4 @@
-# lmshell
+# lmsh
 
 LLM-powered command/script generator that converts natural language queries into executable commands and scripts.
 
@@ -16,7 +16,7 @@ LLM-powered command/script generator that converts natural language queries into
 
 **YOU USE THIS TOOL ENTIRELY AT YOUR OWN RISK.**
 
-By using lmshell, you acknowledge that you understand these risks and accept full responsibility for any commands you choose to execute.
+By using lmsh, you acknowledge that you understand these risks and accept full responsibility for any commands you choose to execute.
 
 ## Features
 
@@ -33,7 +33,7 @@ By using lmshell, you acknowledge that you understand these risks and accept ful
 
 - [uv](https://docs.astral.sh/uv/) (required)
 
-### Install lmshell
+### Install lmsh
 
 ```bash
 curl -sSf https://raw.githubusercontent.com/USER/REPO/main/install.sh | sh
@@ -46,25 +46,25 @@ Configure for your LLM provider:
 #### OpenAI (Default)
 
 ```bash
-export LMSHELL_API_TOKEN="sk-your-openai-api-key"
-export LMSHELL_MODEL_ID="gpt-4o"
+export LMSH_API_TOKEN="sk-your-openai-api-key"
+export LMSH_MODEL_ID="gpt-4o"
 # Base URL defaults to https://api.openai.com/v1
 ```
 
 #### Claude (Anthropic)
 
 ```bash
-export LMSHELL_BASE_URL="https://api.anthropic.com/v1"
-export LMSHELL_API_TOKEN="sk-ant-your-anthropic-key"
-export LMSHELL_MODEL_ID="claude-opus-4-20250514"
+export LMSH_BASE_URL="https://api.anthropic.com/v1"
+export LMSH_API_TOKEN="sk-ant-your-anthropic-key"
+export LMSH_MODEL_ID="claude-opus-4-20250514"
 ```
 
 #### Local vLLM Server
 
 ```bash
-export LMSHELL_BASE_URL="http://127.0.0.1:8000/v1"
-export LMSHELL_API_TOKEN="dummy"
-export LMSHELL_MODEL_ID="your-model-name"
+export LMSH_BASE_URL="http://127.0.0.1:8000/v1"
+export LMSH_API_TOKEN="dummy"
+export LMSH_MODEL_ID="your-model-name"
 ```
 
 Add these to your `~/.bashrc` or `~/.zshrc` to make them permanent.
@@ -74,19 +74,19 @@ Add these to your `~/.bashrc` or `~/.zshrc` to make them permanent.
 ### Basic Usage
 
 ```bash
-lmshell <query>
+lmsh <query>
 ```
 
 ### Command Options
 
 ```
 --base-url=<url>      API endpoint URL
-                      (default: $LMSHELL_BASE_URL or https://api.openai.com/v1)
---api-token=<token>   API authentication token (default: $LMSHELL_API_TOKEN)
---model-id=<model>    Model ID to use (default: $LMSHELL_MODEL_ID)
+                      (default: $LMSH_BASE_URL or https://api.openai.com/v1)
+--api-token=<token>   API authentication token (default: $LMSH_API_TOKEN)
+--model-id=<model>    Model ID to use (default: $LMSH_MODEL_ID)
 --output=<format>     Output format: bash, sh, zsh, python, python3, node, ruby, perl
-                      (default: $LMSHELL_OUTPUT or current shell)
---allow-sudo          Allow sudo commands (default: $LMSHELL_ALLOW_SUDO or false)
+                      (default: $LMSH_OUTPUT or current shell)
+--allow-sudo          Allow sudo commands (default: $LMSH_ALLOW_SUDO or false)
 --version             Show version information
 --help                Show help message
 ```
@@ -95,11 +95,11 @@ lmshell <query>
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `LMSHELL_BASE_URL` | API endpoint URL | `https://api.openai.com/v1` |
-| `LMSHELL_API_TOKEN` | API authentication token | *Required* |
-| `LMSHELL_MODEL_ID` | Model identifier | *Required* |
-| `LMSHELL_OUTPUT` | Output format (bash, python, auto, etc.) | Current shell |
-| `LMSHELL_ALLOW_SUDO` | Allow sudo commands (true/false) | `false` |
+| `LMSH_BASE_URL` | API endpoint URL | `https://api.openai.com/v1` |
+| `LMSH_API_TOKEN` | API authentication token | *Required* |
+| `LMSH_MODEL_ID` | Model identifier | *Required* |
+| `LMSH_OUTPUT` | Output format (bash, python, auto, etc.) | Current shell |
+| `LMSH_ALLOW_SUDO` | Allow sudo commands (true/false) | `false` |
 
 ## Examples
 
@@ -107,17 +107,17 @@ lmshell <query>
 
 ```bash
 # Generate command
-lmshell find all python files modified today
+lmsh find all python files modified today
 # Output: find . -name "*.py" -mtime 0
 
 # Execute directly
-eval "$(lmshell find all python files modified today)"
+eval "$(lmsh find all python files modified today)"
 
 # Or pipe to bash
-lmshell count lines in all txt files | bash
+lmsh count lines in all txt files | bash
 
 # Or save and execute
-lmshell loop through numbers 1 to 10 and print them > cmd.sh
+lmsh loop through numbers 1 to 10 and print them > cmd.sh
 bash cmd.sh
 ```
 
@@ -125,14 +125,14 @@ bash cmd.sh
 
 ```bash
 # Generate Python code
-lmshell --output=python read json file and print all keys
+lmsh --output=python read json file and print all keys
 # Output: import json; data = json.load(open('file.json')); print(list(data.keys()))
 
 # Execute with Python
-lmshell --output=python list all files in current directory | python3
+lmsh --output=python list all files in current directory | python3
 
 # Or save and run
-lmshell --output=python parse json and calculate stats > script.py
+lmsh --output=python parse json and calculate stats > script.py
 python3 script.py
 ```
 
@@ -140,14 +140,14 @@ python3 script.py
 
 ```bash
 # Generate JavaScript code
-lmshell --output=node read package.json and print dependencies
+lmsh --output=node read package.json and print dependencies
 # Output: console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).dependencies)
 
 # Execute with Node
-lmshell --output=node get current directory files | node
+lmsh --output=node get current directory files | node
 
 # Or save and run
-lmshell --output=node process json data > script.js
+lmsh --output=node process json data > script.js
 node script.js
 ```
 
@@ -155,28 +155,28 @@ node script.js
 
 ```bash
 # Ruby
-lmshell --output=ruby read file and count lines | ruby
+lmsh --output=ruby read file and count lines | ruby
 
 # Perl
-lmshell --output=perl process text file | perl
+lmsh --output=perl process text file | perl
 ```
 
 ### Sudo Commands (When Needed)
 
-By default, lmshell will not generate commands requiring sudo for safety. Enable when needed:
+By default, lmsh will not generate commands requiring sudo for safety. Enable when needed:
 
 ```bash
 # Without --allow-sudo (default - safer)
-lmshell install nginx
+lmsh install nginx
 # Output: apt install nginx (will fail without sudo)
 
 # With --allow-sudo enabled
-lmshell --allow-sudo install nginx
+lmsh --allow-sudo install nginx
 # Output: sudo apt install nginx
 
 # Or set environment variable
-export LMSHELL_ALLOW_SUDO=true
-lmshell install nginx
+export LMSH_ALLOW_SUDO=true
+lmsh install nginx
 # Output: sudo apt install nginx
 ```
 
@@ -184,34 +184,47 @@ lmshell install nginx
 
 ## Executing Generated Commands
 
-lmshell outputs commands to stdout. You can execute them in several ways:
+lmsh outputs commands to stdout. You can execute them in several ways:
 
 ### 1. Direct Execution with eval
 
 ```bash
-eval "$(lmshell find all large files)"
+eval "$(lmsh find all large files)"
 ```
 
 ### 2. Pipe to Shell
 
 ```bash
-lmshell find all large files | bash
+lmsh find all large files | bash
 ```
 
-### 3. Convenience Functions (Recommended)
+### 3. Preview Then Execute with tee
+
+Print the command to terminal before executing it:
+
+```bash
+# Shows the command, then executes it
+lmsh say hello | tee /dev/tty | sh
+
+# Works with any interpreter
+lmsh --output=python read json file | tee /dev/tty | python3
+lmsh --output=node get files | tee /dev/tty | node
+```
+
+### 4. Convenience Functions (Recommended)
 
 Add to your `~/.bashrc` or `~/.bash_aliases`:
 
 ```bash
 # Execute immediately
 lm() {
-    eval "$(lmshell "$@")"
+    eval "$(lmsh "$@")"
 }
 
 # Preview then execute
 lmp() {
     local cmd
-    cmd=$(lmshell "$@")
+    cmd=$(lmsh "$@")
     echo "Command: $cmd"
     read -p "Execute? [y/N] " -n 1 -r
     echo
@@ -222,7 +235,7 @@ lmp() {
 
 # Just preview without executing
 lmshow() {
-    lmshell "$@"
+    lmsh "$@"
 }
 ```
 
@@ -250,7 +263,7 @@ lmshow list directory contents    # Just displays the command
 
 ## Supported Providers
 
-lmshell works with any OpenAI-compatible API:
+lmsh works with any OpenAI-compatible API:
 
 ### Tested Providers
 - **OpenAI** - GPT-4o, GPT-4, GPT-3.5
@@ -272,7 +285,7 @@ See [Configuration](#configuration) section for setup examples.
 
 ### Building from Source
 
-The `lmshell` executable is generated from source files using the build script:
+The `lmsh` executable is generated from source files using the build script:
 
 ```bash
 # Clone the repository
@@ -283,26 +296,26 @@ cd llm-command
 ./build.sh
 
 # Test the build
-./lmshell --version
-./lmshell --help
+./lmsh --version
+./lmsh --help
 ```
 
 ### Build Process
 
 The build script (`build.sh`) does the following:
 1. Reads configuration from `constants` file (version, default base URL)
-2. Replaces placeholders in `lmshell.py` with actual values
-3. Combines `lmshell_wrapper.sh` (bash wrapper) with the Python code
+2. Replaces placeholders in `lmsh.py` with actual values
+3. Combines `lmsh_wrapper.sh` (bash wrapper) with the Python code
 4. Updates `install.sh` with GitHub repository information
-5. Creates the final `lmshell` executable
+5. Creates the final `lmsh` executable
 
 ### Project Structure
 
 ```
 llm-command/
 ├── constants            # Version and configuration constants
-├── lmshell_wrapper.sh   # Bash wrapper (checks for uv)
-├── lmshell.py          # Main Python code
+├── lmsh_wrapper.sh   # Bash wrapper (checks for uv)
+├── lmsh.py          # Main Python code
 ├── build.sh            # Build script
 ├── install.sh          # Installation script
 ├── README.md
@@ -330,10 +343,10 @@ Or edit the defaults in `build.sh` directly.
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 When contributing:
-1. Edit source files (`lmshell.py`, `lmshell_wrapper.sh`, `constants`)
+1. Edit source files (`lmsh.py`, `lmsh_wrapper.sh`, `constants`)
 2. Run `./build.sh` to generate the executable
 3. Test your changes
-4. Commit both source files and the built `lmshell`
+4. Commit both source files and the built `lmsh`
 
 ## License
 

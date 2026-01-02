@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Build script for lmshell
+# Build script for lmsh
 # This script combines the wrapper and Python code into a single executable
 
 # Colors for output
@@ -23,20 +23,20 @@ print_error() {
     printf "${RED}✗${NC} %s\n" "$1"
 }
 
-# Configuration - Update these values for your repository
-GITHUB_USER="${GITHUB_USER:-USER}"
-GITHUB_REPO="${GITHUB_REPO:-REPO}"
+# Configuration
+GITHUB_USER="thinkingsloth"
+GITHUB_REPO="lmsh"
 
 # File paths
 CONSTANTS_FILE="constants"
-WRAPPER_FILE="lmshell_wrapper.sh"
-PYTHON_FILE="lmshell.py"
+WRAPPER_FILE="lmsh_wrapper.sh"
+PYTHON_FILE="lmsh.py"
 INSTALL_FILE="install.sh"
-OUTPUT_FILE="lmshell"
+OUTPUT_FILE="lmsh"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Building lmshell"
+echo "  Building lmsh"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -47,11 +47,11 @@ if [ ! -f "$CONSTANTS_FILE" ]; then
     exit 1
 fi
 if [ ! -f "$WRAPPER_FILE" ]; then
-    print_error "lmshell_wrapper.sh not found"
+    print_error "lmsh_wrapper.sh not found"
     exit 1
 fi
 if [ ! -f "$PYTHON_FILE" ]; then
-    print_error "lmshell.py not found"
+    print_error "lmsh.py not found"
     exit 1
 fi
 if [ ! -f "$INSTALL_FILE" ]; then
@@ -83,12 +83,12 @@ trap 'rm -rf "$BUILD_DIR"' EXIT
 print_info "Processing Python code..."
 sed -e "s|__VERSION__|$VERSION|g" \
     -e "s|__DEFAULT_BASE_URL__|$DEFAULT_BASE_URL|g" \
-    "$PYTHON_FILE" > "$BUILD_DIR/lmshell.py"
+    "$PYTHON_FILE" > "$BUILD_DIR/lmsh.py"
 
 # Combine wrapper and Python code
 print_info "Combining wrapper and Python code..."
 cat "$WRAPPER_FILE" > "$OUTPUT_FILE"
-cat "$BUILD_DIR/lmshell.py" >> "$OUTPUT_FILE"
+cat "$BUILD_DIR/lmsh.py" >> "$OUTPUT_FILE"
 echo "PYTHON_SCRIPT" >> "$OUTPUT_FILE"
 
 # Make executable
