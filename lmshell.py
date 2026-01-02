@@ -299,7 +299,13 @@ Output: for i in {{1..10}}; do echo $i; done
 
 def show_version():
     """Display version and exit."""
+    # Get configuration from environment variables
+    base_url = os.getenv('LMSHELL_BASE_URL', DEFAULT_BASE_URL)
+    model_id = os.getenv('LMSHELL_MODEL_ID', 'not set')
+
     print(f"lmshell version {VERSION}")
+    print(f"Base URL: {base_url}")
+    print(f"Model ID: {model_id}")
     sys.exit(0)
 
 def show_help():
