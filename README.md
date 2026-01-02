@@ -36,7 +36,7 @@ By using lmsh, you acknowledge that you understand these risks and accept full r
 ### Install lmsh
 
 ```bash
-curl -sSf https://raw.githubusercontent.com/USER/REPO/main/install.sh | sh
+curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/install.sh | sh
 ```
 
 ### Configuration
@@ -349,6 +349,8 @@ When contributing:
 4. Commit both source files and the built `lmsh`
 
 ## License
+
+Copyright 2025 Thinking Sloth Labs, Inc.
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
 
