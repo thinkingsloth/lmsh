@@ -19,7 +19,7 @@ exec uv run --python 3.11 - "$@" <<'PYTHON_SCRIPT'
 # ///
 
 """
-lmshell - LLM-powered shell command generator
+lmsh - LLM-powered shell command generator
 
 This script takes natural language queries and converts them to shell commands
 using an OpenAI-compatible API.
@@ -51,7 +51,7 @@ def show_first_run_warning():
     """
     # Try to use XDG_CONFIG_HOME, fallback to ~/.config
     config_dir = Path(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config')))
-    flag_file = config_dir / 'lmshell' / '.warning_shown'
+    flag_file = config_dir / 'lmsh' / '.warning_shown'
 
     # If flag file exists, warning was already shown
     if flag_file.exists():
@@ -74,7 +74,7 @@ IMPORTANT:
 
 YOU USE THIS TOOL ENTIRELY AT YOUR OWN RISK.
 
-By continuing to use lmshell, you acknowledge and accept these risks.
+By continuing to use lmsh, you acknowledge and accept these risks.
 
 This warning will only be shown once.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -315,51 +315,51 @@ Output: for i in {{1..10}}; do echo $i; done
 def show_version():
     """Display version and exit."""
     # Get configuration from environment variables
-    base_url = os.getenv('LMSHELL_BASE_URL', DEFAULT_BASE_URL)
-    model_id = os.getenv('LMSHELL_MODEL_ID', 'not set')
+    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
+    model_id = os.getenv('LMSH_MODEL_ID', 'not set')
 
-    print(f"lmshell version {VERSION}")
+    print(f"lmsh version {VERSION}")
     print(f"Base URL: {base_url}")
     print(f"Model ID: {model_id}")
     sys.exit(0)
 
 def show_help():
     """Display help message and exit."""
-    help_text = """lmshell - LLM-powered command/script generator
+    help_text = """lmsh - LLM-powered command/script generator
 
 USAGE:
-    lmshell [OPTIONS] <query...>
+    lmsh [OPTIONS] <query...>
 
 OPTIONS:
     --base-url=<url>      OpenAI API base URL
-                          (default: $LMSHELL_BASE_URL or http://127.0.0.1:7980/v1)
-    --api-token=<token>   API authentication token (default: $LMSHELL_API_TOKEN)
-    --model-id=<model>    Model ID to use (default: $LMSHELL_MODEL_ID)
+                          (default: $LMSH_BASE_URL or http://127.0.0.1:7980/v1)
+    --api-token=<token>   API authentication token (default: $LMSH_API_TOKEN)
+    --model-id=<model>    Model ID to use (default: $LMSH_MODEL_ID)
     --output=<format>     Output format: bash, sh, zsh, python, python3, node, ruby, perl
-                          (default: $LMSHELL_OUTPUT or current shell)
+                          (default: $LMSH_OUTPUT or current shell)
     --allow-sudo          Allow generation of commands requiring sudo/root privileges
-                          (default: $LMSHELL_ALLOW_SUDO or false)
+                          (default: $LMSH_ALLOW_SUDO or false)
     --version             Show version information
     --help                Show this help message
 
 ENVIRONMENT VARIABLES:
-    LMSHELL_BASE_URL      Base URL for OpenAI-compatible API
-    LMSHELL_API_TOKEN     API authentication token
-    LMSHELL_MODEL_ID      Model ID to use for generation
-    LMSHELL_OUTPUT        Default output format (bash, python, node, etc.)
-    LMSHELL_ALLOW_SUDO    Allow sudo commands (true/false, default: false)
+    LMSH_BASE_URL      Base URL for OpenAI-compatible API
+    LMSH_API_TOKEN     API authentication token
+    LMSH_MODEL_ID      Model ID to use for generation
+    LMSH_OUTPUT        Default output format (bash, python, node, etc.)
+    LMSH_ALLOW_SUDO    Allow sudo commands (true/false, default: false)
 
 EXAMPLES:
     # Basic shell commands (uses current shell by default)
-    lmshell find all python files modified today
-    lmshell count lines in all txt files
+    lmsh find all python files modified today
+    lmsh count lines in all txt files
 
     # Force Python output
-    lmshell --output=python read json file and print all keys
+    lmsh --output=python read json file and print all keys
 
     # Use different output formats
-    lmshell --output=zsh create an associative array
-    lmshell --output=node read package.json and print dependencies
+    lmsh --output=zsh create an associative array
+    lmsh --output=node read package.json and print dependencies
 
 OUTPUT FORMATS:
     bash, sh, zsh, fish, ksh  - Shell scripts/commands
@@ -367,7 +367,7 @@ OUTPUT FORMATS:
     node, ruby, perl          - Other scripting languages
 
 The query should describe what you want to do in natural language.
-lmshell will generate the appropriate command or script.
+lmsh will generate the appropriate command or script.
 """
     print(help_text)
     sys.exit(0)
@@ -403,11 +403,11 @@ def parse_args():
     current_shell = get_current_shell()
 
     # Get configuration from environment variables with defaults
-    base_url = os.getenv('LMSHELL_BASE_URL', DEFAULT_BASE_URL)
-    api_token = os.getenv('LMSHELL_API_TOKEN')
-    model_id = os.getenv('LMSHELL_MODEL_ID')
-    output_type = os.getenv('LMSHELL_OUTPUT', current_shell)
-    allow_sudo_env = os.getenv('LMSHELL_ALLOW_SUDO', 'false').lower()
+    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
+    api_token = os.getenv('LMSH_API_TOKEN')
+    model_id = os.getenv('LMSH_MODEL_ID')
+    output_type = os.getenv('LMSH_OUTPUT', current_shell)
+    allow_sudo_env = os.getenv('LMSH_ALLOW_SUDO', 'false').lower()
     allow_sudo = allow_sudo_env in ['true', '1', 'yes']
 
     # Parse command line arguments
@@ -450,11 +450,11 @@ def parse_args():
         show_help()
 
     if not api_token:
-        print("Error: LMSHELL_API_TOKEN not set", file=sys.stderr)
+        print("Error: LMSH_API_TOKEN not set", file=sys.stderr)
         sys.exit(1)
 
     if not model_id:
-        print("Error: LMSHELL_MODEL_ID not set", file=sys.stderr)
+        print("Error: LMSH_MODEL_ID not set", file=sys.stderr)
         sys.exit(1)
 
     # Validate output format

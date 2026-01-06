@@ -1,6 +1,3 @@
-# Build output
-lmsh
-
 # Python
 __pycache__/
 *.py[cod]
