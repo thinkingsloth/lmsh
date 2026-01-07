@@ -15,34 +15,34 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Print colored output
+# Print colored output (to stderr to avoid interfering with return values)
 print_info() {
-    printf "${BLUE}ℹ${NC} %s\n" "$1"
+    printf "${BLUE}ℹ${NC} %s\n" "$1" >&2
 }
 
 print_success() {
-    printf "${GREEN}✓${NC} %s\n" "$1"
+    printf "${GREEN}✓${NC} %s\n" "$1" >&2
 }
 
 print_warning() {
-    printf "${YELLOW}⚠${NC} %s\n" "$1"
+    printf "${YELLOW}⚠${NC} %s\n" "$1" >&2
 }
 
 print_error() {
-    printf "${RED}✗${NC} %s\n" "$1"
+    printf "${RED}✗${NC} %s\n" "$1" >&2
 }
 
 # Check if uv is installed
 check_uv() {
     if ! command -v uv >/dev/null 2>&1; then
         print_error "uv is not installed"
-        echo ""
-        echo "lmsh requires uv to run. To install uv, run:"
-        echo ""
-        printf "  ${GREEN}curl -LsSf https://astral.sh/uv/install.sh | sh${NC}\n"
-        echo ""
-        echo "For more information, visit: https://docs.astral.sh/uv/"
-        echo ""
+        echo "" >&2
+        echo "lmsh requires uv to run. To install uv, run:" >&2
+        echo "" >&2
+        printf "  ${GREEN}curl -LsSf https://astral.sh/uv/install.sh | sh${NC}\n" >&2
+        echo "" >&2
+        echo "For more information, visit: https://docs.astral.sh/uv/" >&2
+        echo "" >&2
         exit 1
     fi
     print_success "uv is installed"
@@ -73,7 +73,7 @@ check_download_tool() {
         DOWNLOAD_TOOL="wget"
     else
         print_error "Neither curl nor wget found"
-        echo "Please install curl or wget and try again"
+        echo "Please install curl or wget and try again" >&2
         exit 1
     fi
 }
@@ -133,72 +133,72 @@ check_path() {
             ;;
         *)
             print_warning "$INSTALL_DIR is not in your PATH"
-            echo ""
-            echo "Add it to your PATH by adding this line to your shell config:"
-            echo ""
+            echo "" >&2
+            echo "Add it to your PATH by adding this line to your shell config:" >&2
+            echo "" >&2
             if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
-                printf "  ${GREEN}export PATH=\"\$HOME/.local/bin:\$PATH\"${NC}\n"
+                printf "  ${GREEN}export PATH=\"\$HOME/.local/bin:\$PATH\"${NC}\n" >&2
             else
-                printf "  ${GREEN}export PATH=\"$INSTALL_DIR:\$PATH\"${NC}\n"
+                printf "  ${GREEN}export PATH=\"$INSTALL_DIR:\$PATH\"${NC}\n" >&2
             fi
-            echo ""
-            echo "Then restart your shell or run:"
-            printf "  ${GREEN}source ~/.bashrc${NC}  # or ~/.zshrc, depending on your shell\n"
-            echo ""
+            echo "" >&2
+            echo "Then restart your shell or run:" >&2
+            printf "  ${GREEN}source ~/.bashrc${NC}  # or ~/.zshrc, depending on your shell\n" >&2
+            echo "" >&2
             ;;
     esac
 }
 
 # Print configuration instructions
 print_config_instructions() {
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
     print_success "lmsh installed successfully!"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "Next steps:"
-    echo ""
-    echo "1. Configure environment variables:"
-    echo ""
-    printf "   ${GREEN}export LMSH_API_TOKEN=\"your-api-token\"${NC}\n"
-    printf "   ${GREEN}export LMSH_MODEL_ID=\"your-model-id\"${NC}\n"
-    echo ""
-    echo "   Optional:"
-    printf "   ${GREEN}export LMSH_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n"
-    printf "   ${GREEN}export LMSH_OUTPUT=\"auto\"${NC}                        # Default: current shell\n"
-    printf "   ${GREEN}export LMSH_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n"
-    echo ""
-    echo "2. Try it out:"
-    echo ""
-    printf "   ${GREEN}lmsh find all python files modified today${NC}\n"
-    printf "   ${GREEN}lmsh --output=python read json file and print keys${NC}\n"
-    printf "   ${GREEN}lmsh --help${NC}\n"
-    echo ""
-    echo "3. For convenience, add helper functions to ~/.bashrc:"
-    echo ""
-    printf "   ${GREEN}# Execute immediately${NC}\n"
-    printf "   ${GREEN}lm() { eval \"\$(lmsh \"\$@\")\"; }${NC}\n"
-    echo ""
-    printf "   ${GREEN}# Preview then execute${NC}\n"
-    printf "   ${GREEN}lmp() {${NC}\n"
-    printf "   ${GREEN}    local cmd; cmd=\$(lmsh \"\$@\")${NC}\n"
-    printf "   ${GREEN}    echo \"Command: \$cmd\"${NC}\n"
-    printf "   ${GREEN}    read -p \"Execute? [y/N] \" -n 1 -r; echo${NC}\n"
-    printf "   ${GREEN}    [[ \$REPLY =~ ^[Yy]\$ ]] && eval \"\$cmd\"${NC}\n"
-    printf "   ${GREEN}}${NC}\n"
-    echo ""
-    echo "For more information, visit:"
-    echo "  https://github.com/thinkingsloth/lmsh"
-    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "" >&2
+    echo "Next steps:" >&2
+    echo "" >&2
+    echo "1. Configure environment variables:" >&2
+    echo "" >&2
+    printf "   ${GREEN}export LMSH_API_TOKEN=\"your-api-token\"${NC}\n" >&2
+    printf "   ${GREEN}export LMSH_MODEL_ID=\"your-model-id\"${NC}\n" >&2
+    echo "" >&2
+    echo "   Optional:" >&2
+    printf "   ${GREEN}export LMSH_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n" >&2
+    printf "   ${GREEN}export LMSH_OUTPUT=\"auto\"${NC}                        # Default: current shell\n" >&2
+    printf "   ${GREEN}export LMSH_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n" >&2
+    echo "" >&2
+    echo "2. Try it out:" >&2
+    echo "" >&2
+    printf "   ${GREEN}lmsh find all python files modified today${NC}\n" >&2
+    printf "   ${GREEN}lmsh --output=python read json file and print keys${NC}\n" >&2
+    printf "   ${GREEN}lmsh --help${NC}\n" >&2
+    echo "" >&2
+    echo "3. For convenience, add helper functions to ~/.bashrc:" >&2
+    echo "" >&2
+    printf "   ${GREEN}# Execute immediately${NC}\n" >&2
+    printf "   ${GREEN}lm() { eval \"\$(lmsh \"\$@\")\"; }${NC}\n" >&2
+    echo "" >&2
+    printf "   ${GREEN}# Preview then execute${NC}\n" >&2
+    printf "   ${GREEN}lmp() {${NC}\n" >&2
+    printf "   ${GREEN}    local cmd; cmd=\$(lmsh \"\$@\")${NC}\n" >&2
+    printf "   ${GREEN}    echo \"Command: \$cmd\"${NC}\n" >&2
+    printf "   ${GREEN}    read -p \"Execute? [y/N] \" -n 1 -r; echo${NC}\n" >&2
+    printf "   ${GREEN}    [[ \$REPLY =~ ^[Yy]\$ ]] && eval \"\$cmd\"${NC}\n" >&2
+    printf "   ${GREEN}}${NC}\n" >&2
+    echo "" >&2
+    echo "For more information, visit:" >&2
+    echo "  https://github.com/thinkingsloth/lmsh" >&2
+    echo "" >&2
 }
 
 # Main installation flow
 main() {
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  lmsh installer"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
+    echo "" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "  lmsh installer" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "" >&2
 
     # Check prerequisites
     print_info "Checking prerequisites..."
