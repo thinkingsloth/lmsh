@@ -185,7 +185,7 @@ def build_system_prompt(output_type, current_shell, available_shells, allow_sudo
     Build the system prompt with shell context.
 
     Args:
-        output_type: Desired output type (bash, python, auto, etc.)
+        output_type: Desired output type (bash, python, node, etc.)
         current_shell: Current shell being used
         available_shells: Dictionary of available shells and versions
         allow_sudo: Whether to allow sudo commands
@@ -385,7 +385,7 @@ def parse_args():
             - base_url: API endpoint URL
             - api_token: Authentication token
             - model_id: Model identifier
-            - output_type: Output format (bash, python, auto, etc.)
+            - output_type: Output format (bash, python, node, etc.)
             - allow_sudo: Whether to allow sudo commands
             - query: User's natural language query
     """
@@ -495,7 +495,7 @@ def call_llm(base_url, api_token, model_id, query, output_type, current_shell, a
         api_token: Authentication token for the API
         model_id: Model identifier to use
         query: Natural language query describing the desired command
-        output_type: Desired output format (bash, python, auto, etc.)
+        output_type: Desired output format (bash, python, node, etc.)
         current_shell: Current shell environment
         available_shells: Dictionary of available shells/interpreters
         allow_sudo: Whether to allow sudo commands

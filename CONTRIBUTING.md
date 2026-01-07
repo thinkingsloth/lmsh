@@ -39,7 +39,7 @@ Feature suggestions are welcome! Please open an issue describing:
    # Test basic functionality
    ./lmsh --output=bash say hello
    ./lmsh --output=python say hello
-   ./lmsh --output=auto find all files
+   ./lmsh --output=node say hello
 
    # Test error cases
    ./lmsh --output=invalid say hello

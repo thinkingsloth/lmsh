@@ -165,7 +165,7 @@ print_config_instructions() {
     echo "" >&2
     echo "   Optional:" >&2
     printf "   ${GREEN}export LMSH_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n" >&2
-    printf "   ${GREEN}export LMSH_OUTPUT=\"auto\"${NC}                        # Default: current shell\n" >&2
+    printf "   ${GREEN}export LMSH_OUTPUT=\"bash\"${NC}                        # Default: current shell\n" >&2
     printf "   ${GREEN}export LMSH_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n" >&2
     echo "" >&2
     echo "2. Try it out:" >&2

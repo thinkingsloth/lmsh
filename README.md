@@ -98,7 +98,7 @@ lmsh <query>
 | `LMSH_BASE_URL` | API endpoint URL | `https://api.openai.com/v1` |
 | `LMSH_API_TOKEN` | API authentication token | *Required* |
 | `LMSH_MODEL_ID` | Model identifier | *Required* |
-| `LMSH_OUTPUT` | Output format (bash, python, auto, etc.) | Current shell |
+| `LMSH_OUTPUT` | Output format (bash, python, node, etc.) | Current shell |
 | `LMSH_ALLOW_SUDO` | Allow sudo commands (true/false) | `false` |
 
 ## Examples
