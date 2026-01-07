@@ -164,7 +164,7 @@ setup_config() {
     if [ -f "$CONFIG_FILE" ]; then
         print_warning "Configuration file already exists: $CONFIG_FILE"
         printf "Overwrite existing configuration? [y/N] " >&2
-        read -r response
+        read -r response </dev/tty
         case "$response" in
             [Yy]|[Yy][Ee][Ss])
                 ;;
@@ -186,7 +186,7 @@ setup_config() {
     echo "  3) Custom OpenAI-compatible API" >&2
     echo "" >&2
     printf "Enter choice [1-3]: " >&2
-    read -r provider_choice
+    read -r provider_choice </dev/tty
 
     case "$provider_choice" in
         1)
@@ -194,10 +194,10 @@ setup_config() {
             BASE_URL="https://api.anthropic.com/v1"
             echo "" >&2
             printf "Enter your Anthropic API token: " >&2
-            read -r API_TOKEN
+            read -r API_TOKEN </dev/tty
             echo "" >&2
             printf "Enter model ID (default: claude-sonnet-4.5-20250514): " >&2
-            read -r MODEL_ID
+            read -r MODEL_ID </dev/tty
             MODEL_ID=${MODEL_ID:-claude-sonnet-4.5-20250514}
             ;;
         2)
@@ -205,24 +205,24 @@ setup_config() {
             BASE_URL="https://api.openai.com/v1"
             echo "" >&2
             printf "Enter your OpenAI API token: " >&2
-            read -r API_TOKEN
+            read -r API_TOKEN </dev/tty
             echo "" >&2
             printf "Enter model ID (default: chatgpt-4o-latest): " >&2
-            read -r MODEL_ID
+            read -r MODEL_ID </dev/tty
             MODEL_ID=${MODEL_ID:-chatgpt-4o-latest}
             ;;
         3)
             # Custom
             echo "" >&2
             printf "Enter base URL (default: http://127.0.0.1:7980/v1): " >&2
-            read -r BASE_URL
+            read -r BASE_URL </dev/tty
             BASE_URL=${BASE_URL:-http://127.0.0.1:7980/v1}
             echo "" >&2
             printf "Enter API token: " >&2
-            read -r API_TOKEN
+            read -r API_TOKEN </dev/tty
             echo "" >&2
             printf "Enter model ID: " >&2
-            read -r MODEL_ID
+            read -r MODEL_ID </dev/tty
             ;;
         *)
             print_error "Invalid choice"
