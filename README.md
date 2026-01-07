@@ -21,9 +21,9 @@ By using lmsh, you acknowledge that you understand these risks and accept full r
 ## Features
 
 - 🤖 **Natural Language to Code** - Describe what you want in plain English, get executable commands
-- 🔄 **Multiple Output Formats** - Generate bash, Python, Node.js, Ruby, Perl scripts, or let the LLM choose
-- 🎯 **Smart Auto Mode** - Automatically selects the best tool for the task
+- 🔄 **Multiple Output Formats** - Generate bash, Python, Node.js, Ruby, Perl scripts and more
 - 🔍 **Environment Aware** - Detects your shell and available interpreters
+- ⚙️ **Simple Configuration** - File-based config with interactive setup during installation
 - 🚀 **Zero Dependencies** - Uses only Python standard library
 - ⚡ **Fast** - Powered by uv for quick execution
 
@@ -39,6 +39,11 @@ By using lmsh, you acknowledge that you understand these risks and accept full r
 curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/install.sh | sh
 ```
 
+The installer will:
+1. Download and install the `lmsh` binary to `~/.local/bin` or `/usr/local/bin`
+2. Prompt you to choose your LLM provider (Claude, ChatGPT, or Custom)
+3. Create a configuration file at `~/.config/lmsh/config` with your settings
+
 ### Uninstall lmsh
 
 To remove lmsh from your system:
@@ -49,7 +54,7 @@ curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/uninstall.sh
 
 The uninstaller will:
 - Remove the lmsh binary from `/usr/local/bin` or `~/.local/bin`
-- Ask if you want to remove the configuration directory (`~/.config/lmsh`)
+- Preserve your configuration directory (`~/.config/lmsh`) and show you how to remove it manually if desired
 
 If the binary is in a protected location, you may need sudo:
 
