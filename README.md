@@ -39,6 +39,24 @@ By using lmsh, you acknowledge that you understand these risks and accept full r
 curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/install.sh | sh
 ```
 
+### Uninstall lmsh
+
+To remove lmsh from your system:
+
+```bash
+curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/uninstall.sh | sh
+```
+
+The uninstaller will:
+- Remove the lmsh binary from `/usr/local/bin` or `~/.local/bin`
+- Ask if you want to remove the configuration directory (`~/.config/lmsh`)
+
+If the binary is in a protected location, you may need sudo:
+
+```bash
+curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/uninstall.sh | sudo sh
+```
+
 ### Configuration
 
 Configure for your LLM provider:
