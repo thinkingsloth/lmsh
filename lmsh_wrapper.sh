@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # Check if uv is installed
-if ! command -v uv &> /dev/null; then
+if ! command -v uv >/dev/null 2>&1; then
     echo "Error: 'uv' is not installed." >&2
     echo "" >&2
     echo "To install uv, run:" >&2
