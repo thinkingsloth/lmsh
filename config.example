@@ -1,32 +1,33 @@
-# lmsh Configuration
-# Copy this file to .env and fill in your values
+# lmsh configuration file example
+# Copy to ~/.config/lmsh/config and edit with your values
 
 # =============================================================================
-# OpenAI (Default)
+# OpenAI
 # =============================================================================
-LMSH_API_TOKEN=sk-your-openai-api-key-here
-LMSH_MODEL_ID=gpt-4o
-# LMSH_BASE_URL is optional for OpenAI (defaults to https://api.openai.com/v1)
+base_url=https://api.openai.com/v1
+api_token=sk-your-openai-api-key
+model_id=chatgpt-4o-latest
 
 # =============================================================================
 # Claude (Anthropic)
 # =============================================================================
-# LMSH_BASE_URL=https://api.anthropic.com/v1
-# LMSH_API_TOKEN=sk-ant-your-anthropic-key-here
-# LMSH_MODEL_ID=claude-opus-4-20250514
+# base_url=https://api.anthropic.com/v1
+# api_token=sk-ant-your-anthropic-key
+# model_id=claude-sonnet-4.5-20250514
 
 # =============================================================================
-# Local vLLM Server
+# Custom OpenAI-compatible API
 # =============================================================================
-# LMSH_BASE_URL=http://127.0.0.1:8000/v1
-# LMSH_API_TOKEN=dummy
-# LMSH_MODEL_ID=your-local-model-name
+# base_url=http://127.0.0.1:7980/v1
+# api_token=your-api-token
+# model_id=your-model-name
 
 # =============================================================================
 # Optional Settings
 # =============================================================================
-# Output Format (bash, sh, zsh, python, python3, node, ruby, perl)
-# LMSH_OUTPUT=bash
+# Default output format (bash, python, node, etc.)
+# Defaults to current shell if not set
+# output=bash
 
-# Allow Sudo Commands (true/false)
-# LMSH_ALLOW_SUDO=false
+# Allow sudo commands (true/false)
+# allow_sudo=false

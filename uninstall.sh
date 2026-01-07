@@ -62,30 +62,17 @@ remove_binary() {
     fi
 }
 
-# Ask about removing config directory
-remove_config() {
+# Show config directory info
+show_config_info() {
     if [ ! -d "$CONFIG_DIR" ]; then
         return 0
     fi
 
     echo "" >&2
-    print_warning "Configuration directory found: $CONFIG_DIR"
+    print_info "Configuration directory preserved: $CONFIG_DIR"
     echo "" >&2
-    printf "Remove configuration directory? [y/N] " >&2
-    read -r response
-
-    case "$response" in
-        [Yy]|[Yy][Ee][Ss])
-            if rm -rf "$CONFIG_DIR" 2>/dev/null; then
-                print_success "Removed configuration directory"
-            else
-                print_error "Failed to remove configuration directory"
-            fi
-            ;;
-        *)
-            print_info "Keeping configuration directory"
-            ;;
-    esac
+    echo "To remove your configuration, run:" >&2
+    printf "  ${GREEN}rm -rf $CONFIG_DIR${NC}\n" >&2
 }
 
 # Main uninstallation flow
@@ -104,13 +91,14 @@ main() {
 
         # Remove the binary
         if remove_binary "$LMSH_PATH"; then
-            # Ask about config directory
-            remove_config
-
             echo "" >&2
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
             print_success "lmsh has been uninstalled successfully!"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+
+            # Show config directory info
+            show_config_info
+
             echo "" >&2
             echo "To reinstall lmsh in the future, visit:" >&2
             echo "  https://github.com/thinkingsloth/lmsh" >&2

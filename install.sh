@@ -149,43 +149,134 @@ check_path() {
     esac
 }
 
-# Print configuration instructions
-print_config_instructions() {
+# Setup configuration
+setup_config() {
+    CONFIG_DIR="$HOME/.config/lmsh"
+    CONFIG_FILE="$CONFIG_DIR/config"
+
     echo "" >&2
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    print_success "lmsh installed successfully!"
+    echo "  Configuration Setup" >&2
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
     echo "" >&2
-    echo "Next steps:" >&2
+
+    # Check if config already exists
+    if [ -f "$CONFIG_FILE" ]; then
+        print_warning "Configuration file already exists: $CONFIG_FILE"
+        printf "Overwrite existing configuration? [y/N] " >&2
+        read -r response
+        case "$response" in
+            [Yy]|[Yy][Ee][Ss])
+                ;;
+            *)
+                print_info "Keeping existing configuration"
+                return 0
+                ;;
+        esac
+    fi
+
+    # Create config directory if it doesn't exist
+    mkdir -p "$CONFIG_DIR"
+
+    # Prompt for provider
+    echo "Which LLM provider do you want to use?" >&2
     echo "" >&2
-    echo "1. Configure environment variables:" >&2
+    echo "  1) Claude (Anthropic)" >&2
+    echo "  2) ChatGPT (OpenAI)" >&2
+    echo "  3) Custom OpenAI-compatible API" >&2
     echo "" >&2
-    printf "   ${GREEN}export LMSH_API_TOKEN=\"your-api-token\"${NC}\n" >&2
-    printf "   ${GREEN}export LMSH_MODEL_ID=\"your-model-id\"${NC}\n" >&2
+    printf "Enter choice [1-3]: " >&2
+    read -r provider_choice
+
+    case "$provider_choice" in
+        1)
+            # Claude/Anthropic
+            BASE_URL="https://api.anthropic.com/v1"
+            echo "" >&2
+            printf "Enter your Anthropic API token: " >&2
+            read -r API_TOKEN
+            echo "" >&2
+            printf "Enter model ID (default: claude-sonnet-4.5-20250514): " >&2
+            read -r MODEL_ID
+            MODEL_ID=${MODEL_ID:-claude-sonnet-4.5-20250514}
+            ;;
+        2)
+            # ChatGPT/OpenAI
+            BASE_URL="https://api.openai.com/v1"
+            echo "" >&2
+            printf "Enter your OpenAI API token: " >&2
+            read -r API_TOKEN
+            echo "" >&2
+            printf "Enter model ID (default: chatgpt-4o-latest): " >&2
+            read -r MODEL_ID
+            MODEL_ID=${MODEL_ID:-chatgpt-4o-latest}
+            ;;
+        3)
+            # Custom
+            echo "" >&2
+            printf "Enter base URL (default: http://127.0.0.1:7980/v1): " >&2
+            read -r BASE_URL
+            BASE_URL=${BASE_URL:-http://127.0.0.1:7980/v1}
+            echo "" >&2
+            printf "Enter API token: " >&2
+            read -r API_TOKEN
+            echo "" >&2
+            printf "Enter model ID: " >&2
+            read -r MODEL_ID
+            ;;
+        *)
+            print_error "Invalid choice"
+            exit 1
+            ;;
+    esac
+
+    # Validate inputs
+    if [ -z "$API_TOKEN" ]; then
+        print_error "API token is required"
+        exit 1
+    fi
+
+    if [ -z "$MODEL_ID" ]; then
+        print_error "Model ID is required"
+        exit 1
+    fi
+
+    # Write config file
+    print_info "Creating configuration file..."
+    cat > "$CONFIG_FILE" <<EOF
+# lmsh configuration file
+# Edit this file to change your settings
+
+# API endpoint URL
+base_url=$BASE_URL
+
+# API authentication token
+api_token=$API_TOKEN
+
+# Model ID to use
+model_id=$MODEL_ID
+
+# Default output format (bash, python, node, etc.)
+# Defaults to current shell if not set
+# output=bash
+
+# Allow sudo commands (true/false)
+# allow_sudo=false
+EOF
+
+    chmod 600 "$CONFIG_FILE"
+    print_success "Configuration saved to $CONFIG_FILE"
+
     echo "" >&2
-    echo "   Optional:" >&2
-    printf "   ${GREEN}export LMSH_BASE_URL=\"http://127.0.0.1:7980/v1\"${NC}  # Default\n" >&2
-    printf "   ${GREEN}export LMSH_OUTPUT=\"bash\"${NC}                        # Default: current shell\n" >&2
-    printf "   ${GREEN}export LMSH_ALLOW_SUDO=\"false\"${NC}                   # Default: false\n" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    print_success "lmsh installed and configured successfully!"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
     echo "" >&2
-    echo "2. Try it out:" >&2
+    echo "Try it out:" >&2
     echo "" >&2
     printf "   ${GREEN}lmsh find all python files modified today${NC}\n" >&2
     printf "   ${GREEN}lmsh --output=python read json file and print keys${NC}\n" >&2
     printf "   ${GREEN}lmsh --help${NC}\n" >&2
-    echo "" >&2
-    echo "3. For convenience, add helper functions to ~/.bashrc:" >&2
-    echo "" >&2
-    printf "   ${GREEN}# Execute immediately${NC}\n" >&2
-    printf "   ${GREEN}lm() { eval \"\$(lmsh \"\$@\")\"; }${NC}\n" >&2
-    echo "" >&2
-    printf "   ${GREEN}# Preview then execute${NC}\n" >&2
-    printf "   ${GREEN}lmp() {${NC}\n" >&2
-    printf "   ${GREEN}    local cmd; cmd=\$(lmsh \"\$@\")${NC}\n" >&2
-    printf "   ${GREEN}    echo \"Command: \$cmd\"${NC}\n" >&2
-    printf "   ${GREEN}    read -p \"Execute? [y/N] \" -n 1 -r; echo${NC}\n" >&2
-    printf "   ${GREEN}    [[ \$REPLY =~ ^[Yy]\$ ]] && eval \"\$cmd\"${NC}\n" >&2
-    printf "   ${GREEN}}${NC}\n" >&2
     echo "" >&2
     echo "For more information, visit:" >&2
     echo "  https://github.com/thinkingsloth/lmsh" >&2
@@ -217,8 +308,8 @@ main() {
     # Check PATH
     check_path
 
-    # Show configuration instructions
-    print_config_instructions
+    # Setup configuration
+    setup_config
 }
 
 # Run the installer

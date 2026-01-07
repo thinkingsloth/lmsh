@@ -78,10 +78,13 @@ cd llm-command
 # Make the script executable
 chmod +x lmsh
 
-# Set up environment variables for testing
-export LMSH_API_TOKEN="your-test-token"
-export LMSH_MODEL_ID="your-test-model"
-export LMSH_BASE_URL="http://127.0.0.1:7980/v1"
+# Set up configuration for testing
+mkdir -p ~/.config/lmsh
+cat > ~/.config/lmsh/config <<EOF
+base_url=http://127.0.0.1:7980/v1
+api_token=your-test-token
+model_id=your-test-model
+EOF
 
 # Test the script
 ./lmsh --help

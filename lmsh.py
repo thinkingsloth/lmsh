@@ -299,9 +299,10 @@ Output: for i in {{1..10}}; do echo $i; done
 
 def show_version():
     """Display version and exit."""
-    # Get configuration from environment variables
-    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
-    model_id = os.getenv('LMSH_MODEL_ID', 'not set')
+    # Get configuration from config file
+    config = read_config_file()
+    base_url = config.get('base_url', DEFAULT_BASE_URL)
+    model_id = config.get('model_id', 'not set')
 
     print(f"lmsh version {VERSION}")
     print(f"Base URL: {base_url}")
@@ -316,23 +317,25 @@ USAGE:
     lmsh [OPTIONS] <query...>
 
 OPTIONS:
-    --base-url=<url>      OpenAI API base URL
-                          (default: $LMSH_BASE_URL or http://127.0.0.1:7980/v1)
-    --api-token=<token>   API authentication token (default: $LMSH_API_TOKEN)
-    --model-id=<model>    Model ID to use (default: $LMSH_MODEL_ID)
+    --base-url=<url>      OpenAI API base URL (overrides config file)
+    --api-token=<token>   API authentication token (overrides config file)
+    --model-id=<model>    Model ID to use (overrides config file)
     --output=<format>     Output format: bash, sh, zsh, python, python3, node, ruby, perl
-                          (default: $LMSH_OUTPUT or current shell)
+                          (default: current shell)
     --allow-sudo          Allow generation of commands requiring sudo/root privileges
-                          (default: $LMSH_ALLOW_SUDO or false)
     --version             Show version information
     --help                Show this help message
 
-ENVIRONMENT VARIABLES:
-    LMSH_BASE_URL      Base URL for OpenAI-compatible API
-    LMSH_API_TOKEN     API authentication token
-    LMSH_MODEL_ID      Model ID to use for generation
-    LMSH_OUTPUT        Default output format (bash, python, node, etc.)
-    LMSH_ALLOW_SUDO    Allow sudo commands (true/false, default: false)
+CONFIGURATION:
+    Config file: ~/.config/lmsh/config
+    Format: key=value (one per line)
+
+    Available settings:
+        base_url       Base URL for OpenAI-compatible API
+        api_token      API authentication token
+        model_id       Model ID to use for generation
+        output         Default output format (bash, python, node, etc.)
+        allow_sudo     Allow sudo commands (true/false, default: false)
 
 EXAMPLES:
     # Basic shell commands (uses current shell by default)
@@ -361,9 +364,39 @@ lmsh will generate the appropriate command or script.
 # Argument Parsing
 # ============================================================================
 
+def read_config_file():
+    """
+    Read configuration from ~/.config/lmsh/config file.
+
+    Returns:
+        dict: Configuration dictionary with parsed values
+    """
+    config = {}
+    config_dir = Path(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))) / 'lmsh'
+    config_file = config_dir / 'config'
+
+    if not config_file.exists():
+        return config
+
+    try:
+        with open(config_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                # Parse key=value
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    config[key.strip()] = value.strip()
+    except Exception as e:
+        print(f"Warning: Failed to read config file: {e}", file=sys.stderr)
+
+    return config
+
 def parse_args():
     """
-    Parse command line arguments and environment variables.
+    Parse command line arguments and configuration file.
 
     Returns:
         dict: Configuration dictionary with keys:
@@ -387,13 +420,16 @@ def parse_args():
     # Get current shell for default
     current_shell = get_current_shell()
 
-    # Get configuration from environment variables with defaults
-    base_url = os.getenv('LMSH_BASE_URL', DEFAULT_BASE_URL)
-    api_token = os.getenv('LMSH_API_TOKEN')
-    model_id = os.getenv('LMSH_MODEL_ID')
-    output_type = os.getenv('LMSH_OUTPUT', current_shell)
-    allow_sudo_env = os.getenv('LMSH_ALLOW_SUDO', 'false').lower()
-    allow_sudo = allow_sudo_env in ['true', '1', 'yes']
+    # Read configuration from config file
+    config = read_config_file()
+
+    # Get configuration with defaults
+    base_url = config.get('base_url', DEFAULT_BASE_URL)
+    api_token = config.get('api_token')
+    model_id = config.get('model_id')
+    output_type = config.get('output', current_shell)
+    allow_sudo_str = config.get('allow_sudo', 'false').lower()
+    allow_sudo = allow_sudo_str in ['true', '1', 'yes']
 
     # Parse command line arguments
     query_parts = []
@@ -435,11 +471,13 @@ def parse_args():
         show_help()
 
     if not api_token:
-        print("Error: LMSH_API_TOKEN not set", file=sys.stderr)
+        print("Error: api_token not configured", file=sys.stderr)
+        print("Please run the installer or edit ~/.config/lmsh/config", file=sys.stderr)
         sys.exit(1)
 
     if not model_id:
-        print("Error: LMSH_MODEL_ID not set", file=sys.stderr)
+        print("Error: model_id not configured", file=sys.stderr)
+        print("Please run the installer or edit ~/.config/lmsh/config", file=sys.stderr)
         sys.exit(1)
 
     # Validate output format

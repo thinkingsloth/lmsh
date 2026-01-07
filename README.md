@@ -59,33 +59,51 @@ curl -sSf https://raw.githubusercontent.com/thinkingsloth/lmsh/main/uninstall.sh
 
 ### Configuration
 
-Configure for your LLM provider:
+The installer will prompt you to choose your LLM provider and configure lmsh automatically.
 
-#### OpenAI (Default)
-
-```bash
-export LMSH_API_TOKEN="sk-your-openai-api-key"
-export LMSH_MODEL_ID="gpt-4o"
-# Base URL defaults to https://api.openai.com/v1
-```
-
-#### Claude (Anthropic)
+If you need to change your configuration later, edit `~/.config/lmsh/config`:
 
 ```bash
-export LMSH_BASE_URL="https://api.anthropic.com/v1"
-export LMSH_API_TOKEN="sk-ant-your-anthropic-key"
-export LMSH_MODEL_ID="claude-opus-4-20250514"
+# lmsh configuration file
+
+# API endpoint URL
+base_url=https://api.openai.com/v1
+
+# API authentication token
+api_token=sk-your-api-token
+
+# Model ID to use
+model_id=gpt-4o
+
+# Default output format (optional)
+# output=bash
+
+# Allow sudo commands (optional)
+# allow_sudo=false
 ```
 
-#### Local vLLM Server
+#### Provider Examples
 
-```bash
-export LMSH_BASE_URL="http://127.0.0.1:8000/v1"
-export LMSH_API_TOKEN="dummy"
-export LMSH_MODEL_ID="your-model-name"
+**Claude (Anthropic):**
+```
+base_url=https://api.anthropic.com/v1
+api_token=sk-ant-your-anthropic-key
+model_id=claude-sonnet-4.5-20250514
 ```
 
-Add these to your `~/.bashrc` or `~/.zshrc` to make them permanent.
+**ChatGPT (OpenAI):**
+```
+base_url=https://api.openai.com/v1
+api_token=sk-your-openai-api-key
+model_id=chatgpt-4o-latest
+```
+
+**Custom OpenAI-compatible API:**
+```
+base_url=http://127.0.0.1:7980/v1
+api_token=your-api-token
+model_id=your-model-name
+```
 
 ## Usage
 
@@ -98,26 +116,15 @@ lmsh <query>
 ### Command Options
 
 ```
---base-url=<url>      API endpoint URL
-                      (default: $LMSH_BASE_URL or https://api.openai.com/v1)
---api-token=<token>   API authentication token (default: $LMSH_API_TOKEN)
---model-id=<model>    Model ID to use (default: $LMSH_MODEL_ID)
+--base-url=<url>      API endpoint URL (overrides config file)
+--api-token=<token>   API authentication token (overrides config file)
+--model-id=<model>    Model ID to use (overrides config file)
 --output=<format>     Output format: bash, sh, zsh, python, python3, node, ruby, perl
-                      (default: $LMSH_OUTPUT or current shell)
---allow-sudo          Allow sudo commands (default: $LMSH_ALLOW_SUDO or false)
+                      (default: current shell)
+--allow-sudo          Allow sudo commands
 --version             Show version information
 --help                Show help message
 ```
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LMSH_BASE_URL` | API endpoint URL | `https://api.openai.com/v1` |
-| `LMSH_API_TOKEN` | API authentication token | *Required* |
-| `LMSH_MODEL_ID` | Model identifier | *Required* |
-| `LMSH_OUTPUT` | Output format (bash, python, node, etc.) | Current shell |
-| `LMSH_ALLOW_SUDO` | Allow sudo commands (true/false) | `false` |
 
 ## Examples
 
@@ -192,10 +199,9 @@ lmsh install nginx
 lmsh --allow-sudo install nginx
 # Output: sudo apt install nginx
 
-# Or set environment variable
-export LMSH_ALLOW_SUDO=true
-lmsh install nginx
-# Output: sudo apt install nginx
+# Or set in config file
+# Edit ~/.config/lmsh/config and add:
+# allow_sudo=true
 ```
 
 ⚠️ **Security Note:** Only enable `--allow-sudo` when you trust the LLM and understand the commands being generated. Always review commands before executing them.
